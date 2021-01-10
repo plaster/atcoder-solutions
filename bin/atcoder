@@ -1,0 +1,142 @@
+#!/bin/bash
+
+# global parameters
+COOKIE_JAR=~/.atcoder-cookie
+URIBASE=https://atcoder.jp
+CURLCMD=(
+		curl -s
+		-b "$COOKIE_JAR"
+		-c "$COOKIE_JAR"
+)
+
+# common functions
+exitm() {
+	echo 1>&2 "ABORT: $@"
+	exit 1
+}
+m() {
+	echo 1>&2 "INFO: $@"
+}
+
+# http wrapper
+atcoder_http_get() {
+	local URIPATH="$1"
+	shift
+	"${CURLCMD[@]}" "${URIBASE}${URIPATH}" "$@"
+}
+atcoder_http_post() {
+	local URIPATH="$1"
+	shift
+	"${CURLCMD[@]}" -XPOST "${URIBASE}${URIPATH}" "$@"
+}
+
+atcoder_extract_js_var() {
+	local VARNAME VALUE
+	VARNAME="$1"
+	[ "X$VARNAME" != X ] || exitm "INTERNAL ERROR: VARNAME MISSING"
+	sed -ne "/var $VARNAME = \"/ { s/.*var $VARNAME = \"//; s/\".*//; p; Q }" <<< "$CONTENT"
+}
+
+atcoder_check_logged_in() {
+	local CONTENT USER_SCREEN_NAME
+	CONTENT="$(atcoder_http_get /home)" || exitm "failed to get /home"
+	USER_SCREEN_NAME="$(atcoder_extract_js_var userScreenName <<< "$CONTENT")"
+	if [ "X$USER_SCREEN_NAME" = X ]
+	then m "not logged in."
+		return 1
+	else m "logged in as: $USER_SCREEN_NAME"
+		return 0
+	fi
+}
+
+atcoder_do_login() {
+	local CONTENT CSRF_TOKEN USER_SCREEN_NAME
+	CONTENT="$(atcoder_http_get /login)" || exitm "failed to get /login"
+	CSRF_TOKEN="$(atcoder_extract_js_var csrfToken <<< "$CONTENT")"
+	[ "X$CSRF_TOKEN" != X ] || exitm "failed to detect csrf_token"
+	m "csrf_token: $CSRF_TOKEN"
+	USER_SCREEN_NAME="$(atcoder_extract_js_var userScreenName <<< "$CONTENT")"
+	if [ "X$USER_SCREEN_NAME" = X ]
+	then m "not logged in."
+	else m "logged in as: $USER_SCREEN_NAME"
+		return 0
+	fi
+
+	echo 1>&2 -n "user: "
+	read USER_SCREEN_NAME || exitm "Cancelled."
+
+	local PASSWORD
+	echo 1>&2 -n "pass: "
+	read -s PASSWORD || exitm "Cancelled."
+
+	m "login..."
+	CONTENT="$(atcoder_http_post /login \
+		-F "username=$USER_SCREEN_NAME" \
+		-F "password=$PASSWORD" \
+		-F "csrf_token=$CSRF_TOKEN"
+		)" || exitm "failed to post /login"
+
+	atcoder_check_logged_in
+	case "$?" in
+	0)
+		m "login ok."
+		return 0
+		;;
+	*)
+		m "login failed."
+		return 1
+		;;
+	esac
+}
+
+atcoder_do_logout() {
+	local CONTENT CSRF_TOKEN USER_SCREEN_NAME
+	CONTENT="$(atcoder_http_get /login)" || exitm "failed to get /login"
+	CSRF_TOKEN="$(atcoder_extract_js_var csrfToken <<< "$CONTENT")"
+	[ "X$CSRF_TOKEN" != X ] || exitm "failed to detect csrf_token"
+	m "csrf_token: $CSRF_TOKEN"
+	USER_SCREEN_NAME="$(atcoder_extract_js_var userScreenName <<< "$CONTENT")"
+	if [ "X$USER_SCREEN_NAME" = X ]
+	then m "not logged in."
+		return 0
+	else m "logged in as: $USER_SCREEN_NAME"
+	fi
+
+	m "logout..."
+	CONTENT="$(atcoder_http_post /logout \
+		-F "csrf_token=$CSRF_TOKEN"
+		)" || exitm "failed to post /logout"
+
+	atcoder_check_logged_in
+	case "$?" in
+	1)
+		m "logout ok."
+		return 0
+		;;
+	*)
+		m "logout failed."
+		return 1
+		;;
+	esac
+}
+
+# dispatch
+SUBCOMMAND="$1"
+shift
+case "$SUBCOMMAND" in
+check-logged-in)
+	atcoder_check_logged_in
+	;;
+login)
+	atcoder_do_login
+	;;
+logout)
+	atcoder_do_logout
+	;;
+'')
+	exitm "SUBCOMMAND MISSING"
+	;;
+*)
+	exitm "UNKNOWN SUBCOMMAND: $SUBCOMMAND"
+	;;
+esac

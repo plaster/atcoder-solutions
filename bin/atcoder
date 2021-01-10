@@ -9,6 +9,10 @@ CURLCMD=(
 		-c "$COOKIE_JAR"
 )
 
+declare -f run
+declare SOURCEFILE
+declare LANGUAGEID
+
 [ ! -x ~/.atcoder ] || . ~/.atcoder
 
 # common functions
@@ -163,13 +167,13 @@ atcoder_task() {
 		[ "X$CSRF_TOKEN" != X ] || exitm "failed to detect csrf_token"
 		USER_SCREEN_NAME="$(atcoder_extract_js_var userScreenName <<< "$CONTENT")"
 		[ "X$USER_SCREEN_NAME" != X ] || exitm "login first"
-		[ -e Main.scm ] || exitm "no source"
+		[ -e "${SOURCEFILE}" ] || exitm "no source"
 
 		m "submit..."
 		atcoder_http_post "/contests/${CONTEST}/submit" \
-			--data-urlencode "data.LanguageId=4053" \
+			--data-urlencode "data.LanguageId=${LANGUAGEID}" \
 			--data-urlencode "data.TaskScreenName=${CONTEST}_${PROBLEM}" \
-			--data-urlencode "sourceCode=$(cat Main.scm)" \
+			--data-urlencode "sourceCode=$(cat "${SOURCEFILE}")" \
 			--data-urlencode "csrf_token=$CSRF_TOKEN" || exitm "submit failed."
 		;;
 	*)
@@ -194,8 +198,8 @@ atcoder_do_init() {
 		;;
 	esac
 
-	CPFROM="${WORKROOT}/lib/template.scm"
-	CPTO="./Main.scm"
+	CPFROM="${WORKROOT}/lib/${SOURCEFILE}"
+	CPTO="./${SOURCEFILE}"
 	if [ -e "$CPTO" ]
 	then
 		echo 1>&2 -n "$CPTO already exists. Overwrite? [y/N]"
@@ -242,11 +246,6 @@ atcoder_do_test() {
 		fi
 	done < <(find sample -name '*.in' | sort -n)
 	return "$RC"
-}
-
-run() {
-	[ "X${GAUCHE_HOME}" != X ] || exitm "GAUCHE_HOME is not set."
-	exec "${GAUCHE_HOME}/bin/gosh" Main.scm
 }
 
 atcoder_do_submit() {

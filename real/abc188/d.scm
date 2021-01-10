@@ -15,33 +15,37 @@
 (define (parse)
   (let* [[ N (read) ]
          [ C (read) ]
-         [ Ss (replist N (replist$ 3 read)) ]
+         [ Ss (replist N (.$ list->vector (replist$ 3 read))) ]
          ]
     (values C Ss)
     ))
 
 (define ((service-cost-of-date date) S)
   (match S
-    [(a b c)
+    [#(a b c)
      (if (<= a date b) c 0)
      ]))
 
 (define (date->cost C Ss date)
   (min C (apply + (map (service-cost-of-date date) Ss))))
 
-(define (accum . args)
-  (match args
-    [ (date cost #(date-prev cost-prev cost-sum))
-     ($ vector date cost $ + cost-sum $ * cost-prev $ - date date-prev)
-     ]))
-
 (define (solve C Ss)
   (let1 cost-of-date (make-tree-map)
-    ($ for-each (cut tree-map-put! cost-of-date <> 0) $ map car Ss)
-    ($ for-each (cut tree-map-put! cost-of-date <> 0) $ map (pa$ + 1) $ map cadr Ss)
-    ($ for-each (^ (date) (tree-map-put! cost-of-date date (date->cost C Ss date)))
-       $ tree-map-keys cost-of-date)
-    (tree-map-fold cost-of-date accum '#(0 0 0))
-    ))
+    ($ for-each (cut tree-map-put! cost-of-date <> 0) $ map (cut vector-ref <> 0) Ss)
+    ($ for-each (cut tree-map-put! cost-of-date <> 0) $ map (pa$ + 1) $ map (cut vector-ref <> 1) Ss)
+    (let loop [[date-prev 0]
+               [cost-prev 0]
+               [cost-sum 0]
+               [dates (tree-map-keys cost-of-date) ]
+               ]
+      (match dates
+        [() cost-sum]
+        [(date . dates)
+         (loop date
+               (date->cost C Ss date)
+               ($ + cost-sum $ * cost-prev $ - date date-prev) 
+               dates)
+         ]
+        ))))
 
-(define emit (.$ print (cut vector-ref <> 2)))
+(define emit print)

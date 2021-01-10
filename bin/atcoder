@@ -198,7 +198,7 @@ atcoder_do_init() {
 		;;
 	esac
 
-	CPFROM="${WORKROOT}/lib/${SOURCEFILE}"
+	CPFROM="${WORKROOT}/templates/${SOURCEFILE}"
 	CPTO="./${SOURCEFILE}"
 	if [ -e "$CPTO" ]
 	then

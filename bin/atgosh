@@ -1,22 +1,2 @@
 #!/bin/sh
-
-[ "X${GAUCHE_HOME}" != X ] ||
-GAUCHE_HOME="/opt/Gauche-0.9.9"
-GAUCHE_BINDIR="${GAUCHE_HOME}/bin"
-
-BINNAME="$1"
-[ "X${BINNAME}" != X ] || {
-	echo 1>&2 "USAGE:"
-	echo 1>&2 "	$0 <BINNAME> [args ...]"
-	echo 1>&2 "BINNAME:"
-	(	cd $GAUCHE_BINDIR &&
-		find . -type f -executable |
-		sed -e 's@^\./@\t@' |
-		sort
-	) 1>&2
-	echo 1>&2 "GAUCHE_HOME: $GAUCHE_HOME"
-	exit 1
-}
-
-shift
-exec "${GAUCHE_BINDIR}/${BINNAME}" "$@"
+exec gauche-invoke gosh "$@"

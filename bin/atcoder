@@ -76,12 +76,19 @@ atcoder_do_login() {
 	read -s PASSWORD || exitm "Cancelled."
 
 	m "login..."
-	atcoder_http_post /login \
+	local STATUS
+	STATUS="$(atcoder_http_post /login \
 		-F "username=$USER_SCREEN_NAME" \
 		-F "password=$PASSWORD" \
 		-F "csrf_token=$CSRF_TOKEN" \
-		-o /dev/null -w '%{http_code}\n' ||
+		-o /dev/null -w '%{http_code}\n'
+		)" ||
 		exitm "failed to post /login"
+	case "$STATUS" in
+	302) ;;
+	*)   exitm "non-302 response($STATUS) after post" ;;
+	esac
+
 
 	atcoder_check_logged_in
 	case "$?" in
@@ -110,10 +117,16 @@ atcoder_do_logout() {
 	fi
 
 	m "logout..."
-	atcoder_http_post /logout \
+	local STATUS
+	STATUS="$(atcoder_http_post /logout \
 		-F "csrf_token=$CSRF_TOKEN" \
-		-o /dev/null -w '%{http_code}\n' ||
+		-o /dev/null -w '%{http_code}\n'
+		)" ||
 		exitm "failed to post /logout"
+	case "$STATUS" in
+	302) ;;
+	*)   exitm "non-302 response($STATUS) after post" ;;
+	esac
 
 	atcoder_check_logged_in
 	case "$?" in
@@ -172,13 +185,19 @@ atcoder_task() {
 		[ -e "${SOURCEFILE}" ] || exitm "no source"
 
 		m "submit..."
-		atcoder_http_post "/contests/${CONTEST}/submit" \
+		local STATUS
+		STATUS="$(atcoder_http_post "/contests/${CONTEST}/submit" \
 			--data-urlencode "data.LanguageId=${LANGUAGEID}" \
 			--data-urlencode "data.TaskScreenName=${CONTEST}_${PROBLEM}" \
 			--data-urlencode "sourceCode=$(cat "${SOURCEFILE}")" \
 			--data-urlencode "csrf_token=$CSRF_TOKEN" \
-			-o /dev/null -w '%{http_code}\n' ||
+			-o /dev/null -w '%{http_code}\n'
+			)" ||
 			exitm "submit failed."
+		case "$STATUS" in
+		302) ;;
+		*)   exitm "non-302 response($STATUS) after post" ;;
+		esac
 		;;
 	*)
 		exitm "INTERNAL ERROR: unknown: $SUBCOMMAND"

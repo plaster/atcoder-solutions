@@ -1,7 +1,9 @@
 #!/bin/sh
 
-[ "X${GAUCHE_HOME}" != X ] ||
-GAUCHE_HOME="/opt/Gauche-0.9.9"
+[ "X${GAUCHE_HOME}" != X ] || {
+	echo 1>&2 "GAUCHE_HOME is not set."
+	exit 1
+}
 GAUCHE_BINDIR="${GAUCHE_HOME}/bin"
 
 BINNAME="$1"

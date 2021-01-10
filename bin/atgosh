@@ -1,3 +1,0 @@
-#!/bin/sh
-export GAUCHE_HOME="/opt/Gauche-0.9.9"
-exec gauche-invoke gosh "$@"

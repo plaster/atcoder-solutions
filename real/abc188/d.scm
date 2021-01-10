@@ -31,8 +31,8 @@
 
 (define (accum . args)
   (match args
-    [ (date cost (date-prev cost-prev cost-sum))
-     (list date cost (+ cost-sum (* cost-prev (- date date-prev))))
+    [ (date cost #(date-prev cost-prev cost-sum))
+     ($ vector date cost $ + cost-sum $ * cost-prev $ - date date-prev)
      ]))
 
 (define (solve C Ss)
@@ -41,7 +41,7 @@
     ($ for-each (cut tree-map-put! cost-of-date <> 0) $ map (pa$ + 1) $ map cadr Ss)
     ($ for-each (^ (date) (tree-map-put! cost-of-date date (date->cost C Ss date)))
        $ tree-map-keys cost-of-date)
-    (tree-map-fold cost-of-date accum '(0 0 0))
+    (tree-map-fold cost-of-date accum '#(0 0 0))
     ))
 
-(define emit (.$ print caddr))
+(define emit (.$ print (cut vector-ref <> 2)))

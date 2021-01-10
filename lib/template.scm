@@ -28,11 +28,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; entry point
-(define run (.$ emit solve parse))
-(define (main args) (run))
+(define (main _) ((.$ emit solve parse)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; solution
+;;; solution body
 
 (define (parse)
   (error "not implemented")

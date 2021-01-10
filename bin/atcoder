@@ -226,7 +226,8 @@ atcoder_do_test() {
 		m "fetching first."
 		atcoder_do_fetch
 	}
-	local SAMPLE_IN SAMPLE_OUT RUN_OUT
+	local SAMPLE_IN SAMPLE_OUT RUN_OUT RC
+	RC=0
 	while read SAMPLE_IN
 	do
 		SAMPLE_OUT="${SAMPLE_IN%.in}.out"
@@ -237,8 +238,10 @@ atcoder_do_test() {
 			m OK
 		else
 			m NG
+			RC=1
 		fi
 	done < <(find sample -name '*.in' | sort -n)
+	return "$RC"
 }
 
 run() {
@@ -247,8 +250,6 @@ run() {
 }
 
 atcoder_do_submit() {
-	m "testing first."
-	atcoder_do_test
 	atcoder_task submit
 }
 
@@ -256,7 +257,7 @@ atcoder_do_submit() {
 SUBCOMMAND="$1"
 shift
 case "$SUBCOMMAND" in
-check-logged-in)
+check-logged-in|whoami)
 	atcoder_check_logged_in
 	;;
 login)
@@ -271,10 +272,21 @@ init)
 fetch)
 	atcoder_do_fetch
 	;;
-test)
+test|t)
 	atcoder_do_test
 	;;
-submit)
+submit|sub)
+	m "testing first."
+	if atcoder_do_test
+	then
+		m "All tests OK."
+		m "Now submit!"
+		atcoder_do_submit
+	else
+		exitm "test failed."
+	fi
+	;;
+force-submit)
 	atcoder_do_submit
 	;;
 '')

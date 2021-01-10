@@ -143,18 +143,33 @@ atcoder_do_logout() {
 
 atcoder_task() {
 	local SUBCOMMAND="$1"
-	local CONTENT CONTEST PROBLEM
-	CONTEST="$(pwd | sed -ne '\@/a[br]c[0-9]\+/[a-z]$@ { s@.*/\(a[br]c[0-9]\+\)/\([a-z]$\)@\1@; p }')"
-	PROBLEM="$(pwd | sed -ne '\@/a[br]c[0-9]\+/[a-z]$@ { s@.*/\(a[br]c[0-9]\+\)/\([a-z]$\)@\2@; p }')"
+	local CONTENT CONTEST PROBLEM TASK_SCREEN_NAMES TASK_SCREEN_NAME
+	CONTEST="$(pwd | sed -ne '\@/[^/]\+/[a-z]$@ { s@.*/\([^/]\+\)/\([a-z]$\)@\1@; p }')"
+	PROBLEM="$(pwd | sed -ne '\@/[^/]\+/[a-z]$@ { s@.*/\([^/]\+\)/\([a-z]$\)@\2@; p }')"
 	[ "X$CONTEST" != X ] || exitm "failed to detect CONTEST"
 	[ "X$PROBLEM" != X ] || exitm "failed to detect PROBLEM"
 	m CONTEST: $CONTEST
 	m PROBLEM: $PROBLEM
-	local TASKPATH="/contests/${CONTEST}/tasks/${CONTEST}_${PROBLEM}"
-	CONTENT="$(atcoder_http_get "$TASKPATH")" || exitm "failed to get $TASKPATH"
+	CONTENT="$(atcoder_http_get "/contests/${CONTEST}/submit")" || exitm "failed to get task list"
+	TASK_SCREEN_NAMES="$(sed -ne '
+		/<select.*name="data.TaskScreenName">/,$ {
+			/<\/select>/Q
+			/<option/ {
+				s/.*value="//
+				s/".*//
+				p
+			}
+		}
+	' <<< "$CONTENT")"
+	TASK_SCREEN_NAME="$(grep "_$PROBLEM"'$' <<< "$TASK_SCREEN_NAMES")"
+	[ "X$TASK_SCREEN_NAME" != X ] || exitm "failed to determinate TASK_SCREEN_NAME"
+	m TASK_SCREEN_NAME: $TASK_SCREEN_NAME
 
 	case "$SUBCOMMAND" in
 	fetch)
+		local TASKPATH="/contests/${CONTEST}/tasks/${TASK_SCREEN_NAME}"
+		CONTENT="$(atcoder_http_get "$TASKPATH")" || exitm "failed to get $TASKPATH"
+
 		[ -d sample ] || mkdir sample || exitm "failed to mkdir sample"
 		local SAMPLENO=1
 		while grep -q "Sample Input $SAMPLENO" <<< "$CONTENT"
@@ -188,7 +203,7 @@ atcoder_task() {
 		local STATUS
 		STATUS="$(atcoder_http_post "/contests/${CONTEST}/submit" \
 			--data-urlencode "data.LanguageId=${LANGUAGEID}" \
-			--data-urlencode "data.TaskScreenName=${CONTEST}_${PROBLEM}" \
+			--data-urlencode "data.TaskScreenName=${TASK_SCREEN_NAME}" \
 			--data-urlencode "sourceCode=$(cat "${SOURCEFILE}")" \
 			--data-urlencode "csrf_token=$CSRF_TOKEN" \
 			-o /dev/null -w '%{http_code}\n'

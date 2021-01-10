@@ -247,6 +247,8 @@ run() {
 }
 
 atcoder_do_submit() {
+	m "testing first."
+	atcoder_do_test
 	atcoder_task submit
 }
 

@@ -26,15 +26,22 @@
      (if (<= a date b) c 0)
      ]))
 
-(define ((cost-of-date C Ss) date)
+(define (date->cost C Ss date)
   (min C (apply + (map (service-cost-of-date date) Ss))))
 
+(define (accum . args)
+  (match args
+    [ (date cost (date-prev cost-prev cost-sum))
+     (list date cost (+ cost-sum (* cost-prev (- date date-prev))))
+     ]))
+
 (define (solve C Ss)
-  (let* [[ first-date (apply min (map car Ss)) ]
-         [ last-date (apply max (map cadr Ss)) ]
-         ]
-    (apply + (map (cost-of-date C Ss)
-                  (iota ($ + 1 $ - last-date first-date) first-date)))
+  (let1 cost-of-date (make-tree-map)
+    ($ for-each (cut tree-map-put! cost-of-date <> 0) $ map car Ss)
+    ($ for-each (cut tree-map-put! cost-of-date <> 0) $ map (pa$ + 1) $ map cadr Ss)
+    ($ for-each (^ (date) (tree-map-put! cost-of-date date (date->cost C Ss date)))
+       $ tree-map-keys cost-of-date)
+    (tree-map-fold cost-of-date accum '(0 0 0))
     ))
 
-(define emit print)
+(define emit (.$ print caddr))

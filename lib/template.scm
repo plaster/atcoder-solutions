@@ -1,4 +1,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; common libs
+(use srfi-1)
+(use util.match)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; self-made library
 
 ;;; I/O helper
@@ -21,5 +26,21 @@
 (define (read-matrix rows cols :optional [reader read-char])
   (replist rows (line-read$ (replist$ cols reader))))
 
-;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; entry point
+(define run (.$ emit solve parse))
+(define (main args) (run))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; solution
+
+(define (parse)
+  (error "not implemented")
+  )
+
+(define (solve ; X
+          )
+  (error "not implemented")
+  )
+
+(define emit print)

@@ -20,14 +20,11 @@
     (values C Ss)
     ))
 
-(define ((service-cost-of-date date) S)
-  (match S
-    [#(a b c)
-     (if (<= a date b) c 0)
-     ]))
-
 (define (date->cost C Ss date)
-  (min C (apply + (map (service-cost-of-date date) Ss))))
+  (min C (apply + (map (^(S)
+                         (if (<= (vector-ref S 0) date (vector-ref S 1))
+                           (vector-ref S 2) 0)
+                         ) Ss))))
 
 (define (solve C Ss)
   (let1 cost-of-date (make-tree-map)

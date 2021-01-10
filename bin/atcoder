@@ -9,6 +9,8 @@ CURLCMD=(
 		-c "$COOKIE_JAR"
 )
 
+[ ! -x ~/.atcoder ] || . ~/.atcoder
+
 # common functions
 exitm() {
 	echo 1>&2 "ABORT: $@"
@@ -54,7 +56,7 @@ atcoder_do_login() {
 	CONTENT="$(atcoder_http_get /login)" || exitm "failed to get /login"
 	CSRF_TOKEN="$(atcoder_extract_js_var csrfToken <<< "$CONTENT")"
 	[ "X$CSRF_TOKEN" != X ] || exitm "failed to detect csrf_token"
-	m "csrf_token: $CSRF_TOKEN"
+	# m "csrf_token: $CSRF_TOKEN"
 	USER_SCREEN_NAME="$(atcoder_extract_js_var userScreenName <<< "$CONTENT")"
 	if [ "X$USER_SCREEN_NAME" = X ]
 	then m "not logged in."
@@ -94,7 +96,7 @@ atcoder_do_logout() {
 	CONTENT="$(atcoder_http_get /login)" || exitm "failed to get /login"
 	CSRF_TOKEN="$(atcoder_extract_js_var csrfToken <<< "$CONTENT")"
 	[ "X$CSRF_TOKEN" != X ] || exitm "failed to detect csrf_token"
-	m "csrf_token: $CSRF_TOKEN"
+	# m "csrf_token: $CSRF_TOKEN"
 	USER_SCREEN_NAME="$(atcoder_extract_js_var userScreenName <<< "$CONTENT")"
 	if [ "X$USER_SCREEN_NAME" = X ]
 	then m "not logged in."
@@ -120,6 +122,134 @@ atcoder_do_logout() {
 	esac
 }
 
+atcoder_task() {
+	local SUBCOMMAND="$1"
+	local CONTENT CONTEST PROBLEM
+	CONTEST="$(pwd | sed -ne '\@/a[br]c[0-9]\+/[a-z]$@ { s@.*/\(a[br]c[0-9]\+\)/\([a-z]$\)@\1@; p }')"
+	PROBLEM="$(pwd | sed -ne '\@/a[br]c[0-9]\+/[a-z]$@ { s@.*/\(a[br]c[0-9]\+\)/\([a-z]$\)@\2@; p }')"
+	[ "X$CONTEST" != X ] || exitm "failed to detect CONTEST"
+	[ "X$PROBLEM" != X ] || exitm "failed to detect PROBLEM"
+	m CONTEST: $CONTEST
+	m PROBLEM: $PROBLEM
+	local TASKPATH="/contests/${CONTEST}/tasks/${CONTEST}_${PROBLEM}"
+	CONTENT="$(atcoder_http_get "$TASKPATH")" || exitm "failed to get $TASKPATH"
+
+	case "$SUBCOMMAND" in
+	fetch)
+		[ -d sample ] || mkdir sample || exitm "failed to mkdir sample"
+		local SAMPLENO=1
+		while grep -q "Sample Input $SAMPLENO" <<< "$CONTENT"
+		do
+			m found sample $SAMPLENO
+			sed -ne '\@<h3>Sample Input '$SAMPLENO'</h3><pre>@,$ {
+				\@</pre>@ Q
+				s/.*<pre>//
+				s/\r$//
+				p
+			}' <<< $CONTENT > sample/$SAMPLENO.in
+			sed -ne '\@<h3>Sample Output '$SAMPLENO'</h3><pre>@,$ {
+				\@</pre>@ Q
+				s/.*<pre>//
+				s/\r$//
+				p
+			}' <<< $CONTENT > sample/$SAMPLENO.out
+			SAMPLENO=$(( SAMPLENO + 1 ))
+		done
+		;;
+
+	submit)
+		local CSRF_TOKEN USER_SCREEN_NAME
+		CSRF_TOKEN="$(atcoder_extract_js_var csrfToken <<< "$CONTENT")"
+		[ "X$CSRF_TOKEN" != X ] || exitm "failed to detect csrf_token"
+		USER_SCREEN_NAME="$(atcoder_extract_js_var userScreenName <<< "$CONTENT")"
+		[ "X$USER_SCREEN_NAME" != X ] || exitm "login first"
+		[ -e Main.scm ] || exitm "no source"
+
+		m "submit..."
+		atcoder_http_post "/contests/${CONTEST}/submit" \
+			--data-urlencode "data.LanguageId=4053" \
+			--data-urlencode "data.TaskScreenName=${CONTEST}_${PROBLEM}" \
+			--data-urlencode "sourceCode=$(cat Main.scm)" \
+			--data-urlencode "csrf_token=$CSRF_TOKEN" || exitm "submit failed."
+		;;
+	*)
+		exitm "INTERNAL ERROR: unknown: $SUBCOMMAND"
+		;;
+	esac
+}
+
+atcoder_do_fetch() {
+	atcoder_task fetch
+}
+
+atcoder_do_init() {
+	local WORKROOT CPFROM CPTO
+	WORKROOT="$(git rev-parse --show-toplevel)"
+	RC="$?"
+	case "$RC" in
+	0)
+		;;
+	*)
+		exitm "Failed to detect WORKROOT($RC). Please check if git repo is properly checked out."
+		;;
+	esac
+
+	CPFROM="${WORKROOT}/lib/template.scm"
+	CPTO="./Main.scm"
+	if [ -e "$CPTO" ]
+	then
+		echo 1>&2 -n "$CPTO already exists. Overwrite? [y/N]"
+		read C
+		RC="$?"
+		case "$RC" in
+		0)
+			;;
+		*)
+			exitm "Cancelled."
+			;;
+		esac
+		case "$C" in
+		Y|y)
+			;;
+		*)
+			exitm "Cancelled."
+			;;
+		esac
+	fi
+
+	m cp "$CPFROM" "$CPTO"
+	cp "$CPFROM" "$CPTO" || exitm "cp faield."
+}
+
+atcoder_do_test() {
+	[ -d sample ] || {
+		m "fetching first."
+		atcoder_do_fetch
+	}
+	local SAMPLE_IN SAMPLE_OUT RUN_OUT
+	while read SAMPLE_IN
+	do
+		SAMPLE_OUT="${SAMPLE_IN%.in}.out"
+		m "run < ${SAMPLE_IN}"
+		RUN_OUT="$(run < "${SAMPLE_IN}")" || exitm "run failed!"
+		if diff -U0 -L expected -L got "$SAMPLE_OUT" <(echo "$RUN_OUT")
+		then
+			m OK
+		else
+			m NG
+		fi
+	done < <(find sample -name '*.in' | sort -n)
+}
+
+run() {
+	[ "X${GAUCHE_HOME}" != X ] || exitm "GAUCHE_HOME is not set."
+	exec "${GAUCHE_HOME}/bin/gosh" Main.scm
+}
+
+atcoder_do_submit() {
+	atcoder_task submit
+}
+
 # dispatch
 SUBCOMMAND="$1"
 shift
@@ -132,6 +262,18 @@ login)
 	;;
 logout)
 	atcoder_do_logout
+	;;
+init)
+	atcoder_do_init
+	;;
+fetch)
+	atcoder_do_fetch
+	;;
+test)
+	atcoder_do_test
+	;;
+submit)
+	atcoder_do_submit
 	;;
 '')
 	exitm "SUBCOMMAND MISSING"

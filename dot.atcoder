@@ -2,6 +2,6 @@
 # Place this file at ~/.atcoder and edit to fit to your environment.
 SOURCEFILE="Main.scm"
 LANGUAGEID=4053 #scheme
-run() {
+atcoder_run() {
 	exec "/opt/Gauche-0.9.9/bin/gosh" "${SOURCEFILE}"
 }

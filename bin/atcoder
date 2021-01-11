@@ -9,11 +9,18 @@ CURLCMD=(
 		-c "$COOKIE_JAR"
 )
 
-declare -f run
+declare -f atcoder_run
 declare SOURCEFILE
 declare LANGUAGEID
 
+atcoder_assert_config() {
+	type -t atcoder_run >/dev/null || exitm "config missing: atcoder_run"
+	[ -v SOURCEFILE ] || exitm "config missing: SOURCEFILE"
+	[ -v LANGUAGEID ] || exitm "config missing: LANGUAGEID"
+}
+
 [ ! -x ~/.atcoder ] || . ~/.atcoder
+[ ! -x ./.atcoder ] || . ./.atcoder
 
 # common functions
 exitm() {
@@ -273,8 +280,8 @@ atcoder_do_test() {
 	while read SAMPLE_IN
 	do
 		SAMPLE_OUT="${SAMPLE_IN%.in}.out"
-		m "run < ${SAMPLE_IN}"
-		RUN_OUT="$(run < "${SAMPLE_IN}")" || exitm "run failed!"
+		m "atcoder_run < ${SAMPLE_IN}"
+		RUN_OUT="$(atcoder_run < "${SAMPLE_IN}")" || exitm "atcoder_run failed!"
 		if diff -U0 -L expected -L got "$SAMPLE_OUT" <(echo "$RUN_OUT")
 		then
 			m OK
@@ -304,15 +311,18 @@ logout)
 	atcoder_do_logout
 	;;
 init|gen)
+	atcoder_assert_config
 	atcoder_do_init
 	;;
 fetch)
 	atcoder_do_fetch
 	;;
 test|t)
+	atcoder_assert_config
 	atcoder_do_test
 	;;
 submit|sub)
+	atcoder_assert_config
 	m "testing first."
 	if atcoder_do_test
 	then
@@ -324,6 +334,7 @@ submit|sub)
 	fi
 	;;
 force-submit)
+	atcoder_assert_config
 	atcoder_do_submit
 	;;
 '')

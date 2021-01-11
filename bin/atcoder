@@ -150,15 +150,30 @@ atcoder_do_logout() {
 	esac
 }
 
+atcoder_detect_by_dir() {
+	case "$1" in
+	CONTEST) sed -ne '\@/[^/]\+/[a-z]$@ { s@.*/\([^/]\+\)/\([a-z]$\)@\1@; p }' ;;
+	PROBLEM) sed -ne '\@/[^/]\+/[a-z]$@ { s@.*/\([^/]\+\)/\([a-z]$\)@\2@; p }' ;;
+	*) exitm "INTERNAL ERROR: unknown: $1" ;;
+	esac
+}
+
+atcoder_detect_by_pwd() {
+	pwd | atcoder_detect_by_dir "$@"
+}
+
 atcoder_task() {
 	local SUBCOMMAND="$1"
-	local CONTENT CONTEST PROBLEM TASK_SCREEN_NAMES TASK_SCREEN_NAME
-	CONTEST="$(pwd | sed -ne '\@/[^/]\+/[a-z]$@ { s@.*/\([^/]\+\)/\([a-z]$\)@\1@; p }')"
-	PROBLEM="$(pwd | sed -ne '\@/[^/]\+/[a-z]$@ { s@.*/\([^/]\+\)/\([a-z]$\)@\2@; p }')"
+
+	local CONTEST PROBLEM
+	CONTEST="$(atcoder_detect_by_pwd CONTEST)"
+	PROBLEM="$(atcoder_detect_by_pwd PROBLEM)"
 	[ "X$CONTEST" != X ] || exitm "failed to detect CONTEST"
 	[ "X$PROBLEM" != X ] || exitm "failed to detect PROBLEM"
 	m CONTEST: $CONTEST
 	m PROBLEM: $PROBLEM
+
+	local CONTENT TASK_SCREEN_NAMES TASK_SCREEN_NAME
 	CONTENT="$(atcoder_http_get "/contests/${CONTEST}/submit")" || exitm "failed to get task list"
 	TASK_SCREEN_NAMES="$(sed -ne '
 		/<select.*name="data.TaskScreenName">/,$ {
@@ -276,6 +291,14 @@ atcoder_do_init() {
 		exitm "Failed to detect WORKROOT($RC). Please check if git repo is properly checked out."
 		;;
 	esac
+
+	local CONTEST PROBLEM
+	CONTEST="$(atcoder_detect_by_pwd CONTEST)"
+	PROBLEM="$(atcoder_detect_by_pwd PROBLEM)"
+	[ "X$CONTEST" != X ] || exitm "failed to detect CONTEST"
+	[ "X$PROBLEM" != X ] || exitm "failed to detect PROBLEM"
+	m CONTEST: $CONTEST
+	m PROBLEM: $PROBLEM
 
 	checked_cp "${WORKROOT}/templates/source/${SOURCETMPL}" "./${SOURCEFILE}"
 }

@@ -3,6 +3,9 @@
 SOURCETMPL="Main.scm"
 SOURCEFILE="Main.scm"
 LANGUAGEID=4053 #scheme
+atcoder_build() {
+	true
+}
 atcoder_run() {
 	exec "/opt/Gauche-0.9.9/bin/gosh" "${SOURCEFILE}"
 }

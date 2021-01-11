@@ -95,7 +95,7 @@ atcoder_do_login() {
 		exitm "failed to post /login"
 	case "$STATUS" in
 	302) ;;
-	*)   exitm "non-302 response($STATUS) after post" ;;
+	*)   exitm "SOMETHING WRONG: non-302 response($STATUS) after post" ;;
 	esac
 
 
@@ -134,7 +134,7 @@ atcoder_do_logout() {
 		exitm "failed to post /logout"
 	case "$STATUS" in
 	302) ;;
-	*)   exitm "non-302 response($STATUS) after post" ;;
+	*)   exitm "SOMETHING WRONG: non-302 response($STATUS) after post" ;;
 	esac
 
 	atcoder_check_logged_in
@@ -241,7 +241,7 @@ atcoder_task() {
 			exitm "submit failed."
 		case "$STATUS" in
 		302) ;;
-		*)   exitm "non-302 response($STATUS) after post" ;;
+		*)   exitm "SOMETHING WRONG: non-302 response($STATUS) after post" ;;
 		esac
 		;;
 	*)

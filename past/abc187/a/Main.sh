@@ -1,14 +1,14 @@
 #!/bin/bash
 
 s() {
-	X="$1"
-	SUM=0
-	while [ "$X" != 0 ]
-	do
-		SUM=$(( SUM + X % 10 ))
-		X=$(( X / 10 ))
-	done
-	echo "$SUM"
+	perl -Mstrict -e 'my $x = $ARGV[0];
+	my $s = 0;
+	while ($x) {
+		$s += $x % 10;
+		$x = int($x / 10);
+	}
+	print $s,"\n";
+	' "$1"
 }
 
 read A B

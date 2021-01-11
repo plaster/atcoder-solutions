@@ -47,30 +47,31 @@
         ])]))
 
 ;; 全行チェック
-(define (fit success fail S T)
+(define (fit success fail-h fail-v S T)
   (match T
     [ () (success #t) ]
     [ (t . T)
      (match S
-       [ () #f ] ; 縦がはみ出ても、次の横ずらしで成功するかもしれないので確定できない
+       [ () (fail-v #f) ]
        [ (s . S)
-        (and (fit1 fail s t)
-             (fit success fail S T))
+        (and (fit1 fail-h s t)
+             (fit success fail-h fail-v S T))
         ])]))
 
 ;; 縦へずらしながらチェック
-(define (fit* success fail S T)
-  (pair-for-each 
-    (^ (S) (fit success fail S T))
-    S
-    ))
+(define (fit* success fail-h S T)
+  (let/cc fail-v
+    (pair-for-each 
+      (^ (S) (fit success fail-h fail-v S T))
+      S
+      )))
 
 
 ;; 横へずらしながらチェック
 (define (fit** success S T)
-  (let/cc fail
+  (let/cc fail-h
     (apply pair-for-each
-      (^ S (fit* success fail S T))
+      (^ S (fit* success fail-h S T))
       S)))
 
 (define (solve S T)

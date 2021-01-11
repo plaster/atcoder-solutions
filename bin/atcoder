@@ -233,21 +233,13 @@ atcoder_do_fetch() {
 	atcoder_task fetch
 }
 
-atcoder_do_init() {
-	local WORKROOT CPFROM CPTO
-	WORKROOT="$(git rev-parse --show-toplevel)"
-	RC="$?"
-	case "$RC" in
-	0)
-		;;
-	*)
-		exitm "Failed to detect WORKROOT($RC). Please check if git repo is properly checked out."
-		;;
-	esac
+checked_cp() {
+	local CPFROM="$1"
+	local CPTO="$2"
 
-	CPFROM="${WORKROOT}/templates/source/${SOURCETMPL}"
+	# `cp -i` don't fail even if overwrite cancelled interactively.
 	[ -f "${CPFROM}" ] || exitm "cannoct access to template: $CPFROM"
-	CPTO="./${SOURCEFILE}"
+
 	if [ -e "$CPTO" ]
 	then
 		echo 1>&2 -n "$CPTO already exists. Overwrite? [y/N]"
@@ -271,6 +263,21 @@ atcoder_do_init() {
 
 	m cp "$CPFROM" "$CPTO"
 	cp "$CPFROM" "$CPTO" || exitm "cp faield."
+}
+
+atcoder_do_init() {
+	local WORKROOT
+	WORKROOT="$(git rev-parse --show-toplevel)"
+	RC="$?"
+	case "$RC" in
+	0)
+		;;
+	*)
+		exitm "Failed to detect WORKROOT($RC). Please check if git repo is properly checked out."
+		;;
+	esac
+
+	checked_cp "${WORKROOT}/templates/source/${SOURCETMPL}" "./${SOURCEFILE}"
 }
 
 atcoder_do_test() {

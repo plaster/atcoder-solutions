@@ -179,15 +179,8 @@ atcoder_assert_pwd() {
 	m PROBLEM: $PROBLEM
 }
 
-atcoder_task() {
-	local SUBCOMMAND="$1"
-
-	atcoder_assert_config
-	atcoder_assert_pwd
-
-	local CONTENT TASK_SCREEN_NAMES TASK_SCREEN_NAME
-	CONTENT="$(atcoder_http_get "/contests/${CONTEST}/submit")" || exitm "failed to get task list"
-	TASK_SCREEN_NAMES="$(sed -ne '
+atcoder_extract_task_screen_names() {
+	sed -ne '
 		/<select.*name="data.TaskScreenName">/,$ {
 			/<\/select>/Q
 			/<option/ {
@@ -196,7 +189,32 @@ atcoder_task() {
 				p
 			}
 		}
-	' <<< "$CONTENT")"
+	' <<< "$CONTENT"
+}
+
+atcoder_do_mkdir() {
+	CONTEST="$(basename $(pwd))"
+	local CONTENT TASK_SCREEN_NAMES TASK_SCREEN_NAME
+	CONTENT="$(atcoder_http_get "/contests/${CONTEST}/submit")" || exitm "failed to get task list"
+	TASK_SCREEN_NAMES="$(atcoder_extract_task_screen_names <<< "$CONTENT")"
+	local TASKDIR
+	while read TASK_SCREEN_NAME
+	do
+		TASKDIR="$(sed -e 's/.*_//' <<< "$TASK_SCREEN_NAME")"
+		m "mkdir $TASKDIR for $TASK_SCREEN_NAME"
+		[ -d "$TASKDIR" ] || mkdir "$TASKDIR"
+	done <<< "$TASK_SCREEN_NAMES"
+}
+
+atcoder_task() {
+	local SUBCOMMAND="$1"
+
+	atcoder_assert_config
+	atcoder_assert_pwd
+
+	local CONTENT TASK_SCREEN_NAMES TASK_SCREEN_NAME
+	CONTENT="$(atcoder_http_get "/contests/${CONTEST}/submit")" || exitm "failed to get task list"
+	TASK_SCREEN_NAMES="$(atcoder_extract_task_screen_names <<< "$CONTENT")"
 	TASK_SCREEN_NAME="$(grep "_$PROBLEM"'$' <<< "$TASK_SCREEN_NAMES")"
 	[ "X$TASK_SCREEN_NAME" != X ] || exitm "failed to determinate TASK_SCREEN_NAME"
 	m TASK_SCREEN_NAME: $TASK_SCREEN_NAME
@@ -388,6 +406,9 @@ login)
 	;;
 logout)
 	atcoder_do_logout
+	;;
+mkdir)
+	atcoder_do_mkdir
 	;;
 init|gen)
 	atcoder_do_init "$@"

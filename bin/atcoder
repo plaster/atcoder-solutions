@@ -162,16 +162,22 @@ atcoder_detect_by_pwd() {
 	pwd | atcoder_detect_by_dir "$@"
 }
 
-atcoder_task() {
-	local SUBCOMMAND="$1"
+declare CONTEST PROBLEM
 
-	local CONTEST PROBLEM
+atcoder_assert_pwd() {
 	CONTEST="$(atcoder_detect_by_pwd CONTEST)"
 	PROBLEM="$(atcoder_detect_by_pwd PROBLEM)"
 	[ "X$CONTEST" != X ] || exitm "failed to detect CONTEST"
 	[ "X$PROBLEM" != X ] || exitm "failed to detect PROBLEM"
 	m CONTEST: $CONTEST
 	m PROBLEM: $PROBLEM
+}
+
+atcoder_task() {
+	local SUBCOMMAND="$1"
+
+	atcoder_assert_config
+	atcoder_assert_pwd
 
 	local CONTENT TASK_SCREEN_NAMES TASK_SCREEN_NAME
 	CONTENT="$(atcoder_http_get "/contests/${CONTEST}/submit")" || exitm "failed to get task list"
@@ -292,18 +298,14 @@ atcoder_do_init() {
 		;;
 	esac
 
-	local CONTEST PROBLEM
-	CONTEST="$(atcoder_detect_by_pwd CONTEST)"
-	PROBLEM="$(atcoder_detect_by_pwd PROBLEM)"
-	[ "X$CONTEST" != X ] || exitm "failed to detect CONTEST"
-	[ "X$PROBLEM" != X ] || exitm "failed to detect PROBLEM"
-	m CONTEST: $CONTEST
-	m PROBLEM: $PROBLEM
+	atcoder_assert_pwd
+	atcoder_assert_config
 
 	checked_cp "${WORKROOT}/templates/source/${SOURCETMPL}" "./${SOURCEFILE}"
 }
 
 atcoder_do_test() {
+	atcoder_assert_config
 	[ -d sample ] || {
 		m "fetching first."
 		atcoder_do_fetch
@@ -344,18 +346,15 @@ logout)
 	atcoder_do_logout
 	;;
 init|gen)
-	atcoder_assert_config
 	atcoder_do_init
 	;;
 fetch)
 	atcoder_do_fetch
 	;;
 test|t)
-	atcoder_assert_config
 	atcoder_do_test
 	;;
 submit|sub)
-	atcoder_assert_config
 	m "testing first."
 	if atcoder_do_test
 	then
@@ -367,7 +366,6 @@ submit|sub)
 	fi
 	;;
 force-submit)
-	atcoder_assert_config
 	atcoder_do_submit
 	;;
 '')

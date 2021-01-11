@@ -10,13 +10,13 @@ CURLCMD=(
 )
 
 declare -f atcoder_run
-declare TEMPLATE
+declare SOURCETMPL
 declare SOURCEFILE
 declare LANGUAGEID
 
 atcoder_assert_config() {
 	type -t atcoder_run >/dev/null || exitm "config missing: atcoder_run"
-	[ -v TEMPLATE ] || exitm "config missing: TEMPLATE"
+	[ -v SOURCETMPL ] || exitm "config missing: SOURCETMPL"
 	[ -v SOURCEFILE ] || exitm "config missing: SOURCEFILE"
 	[ -v LANGUAGEID ] || exitm "config missing: LANGUAGEID"
 }
@@ -245,7 +245,7 @@ atcoder_do_init() {
 		;;
 	esac
 
-	CPFROM="${WORKROOT}/templates/${TEMPLATE}"
+	CPFROM="${WORKROOT}/templates/source/${SOURCETMPL}"
 	[ -f "${CPFROM}" ] || exitm "cannoct access to template: $CPFROM"
 	CPTO="./${SOURCEFILE}"
 	if [ -e "$CPTO" ]

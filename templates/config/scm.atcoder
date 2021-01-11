@@ -1,6 +1,6 @@
 # vi:se ft=sh :
 # Place this file at ~/.atcoder and edit to fit to your environment.
-TEMPLATE="Main.scm"
+SOURCETMPL="Main.scm"
 SOURCEFILE="Main.scm"
 LANGUAGEID=4053 #scheme
 atcoder_run() {

@@ -22,6 +22,7 @@ atcoder_assert_config() {
 	[ -v SOURCETMPL ] || exitm "config missing: SOURCETMPL"
 	[ -v SOURCEFILE ] || exitm "config missing: SOURCEFILE"
 	[ -v LANGUAGEID ] || exitm "config missing: LANGUAGEID"
+	[ -v LANGTITLE ] || exitm "config missing: LANGTITLE"
 }
 
 atcoder_load_config() {
@@ -234,7 +235,7 @@ atcoder_task() {
 		[ "X$USER_SCREEN_NAME" != X ] || exitm "login first"
 		[ -e "${SOURCEFILE}" ] || exitm "no source"
 
-		m "submit..."
+		m "submitting $SOURCEFILE as $LANGTITLE ..."
 		local STATUS
 		STATUS="$(atcoder_http_post "/contests/${CONTEST}/submit" \
 			--data-urlencode "data.LanguageId=${LANGUAGEID}" \
@@ -350,6 +351,7 @@ atcoder_do_test() {
 		atcoder_do_fetch
 	}
 	atcoder_build || exitm "build faield."
+	m "running $SOURCEFILE on $LANGTITLE ..."
 	local SAMPLE_IN SAMPLE_OUT RUN_OUT RC
 	RC=0
 	while read SAMPLE_IN

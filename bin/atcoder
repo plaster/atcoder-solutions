@@ -247,30 +247,8 @@ atcoder_do_init() {
 
 	CPFROM="${WORKROOT}/templates/source/${SOURCETMPL}"
 	[ -f "${CPFROM}" ] || exitm "cannoct access to template: $CPFROM"
-	CPTO="./${SOURCEFILE}"
-	if [ -e "$CPTO" ]
-	then
-		echo 1>&2 -n "$CPTO already exists. Overwrite? [y/N]"
-		read C
-		RC="$?"
-		case "$RC" in
-		0)
-			;;
-		*)
-			exitm "Cancelled."
-			;;
-		esac
-		case "$C" in
-		Y|y)
-			;;
-		*)
-			exitm "Cancelled."
-			;;
-		esac
-	fi
-
 	m cp "$CPFROM" "$CPTO"
-	cp "$CPFROM" "$CPTO" || exitm "cp faield."
+	cp -i "$CPFROM" "$CPTO" || exitm "cp faield."
 }
 
 atcoder_do_test() {

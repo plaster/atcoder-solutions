@@ -3,7 +3,7 @@
 SOURCETMPL="Main.cc"
 SOURCEFILE="Main.cc"
 LANGTITLE="C++(gcc)"
-LANGUAGEID=4003 #scheme
+LANGUAGEID=4003 #gcc
 atcoder_build() {
 	g++ -std=gnu++17 -Wall -Wextra -O2 -DONLINE_JUDGE -I/opt/boost/gcc/include -L/opt/boost/gcc/lib -I/opt/ac-library -o ./a.out "$SOURCEFILE"
 }

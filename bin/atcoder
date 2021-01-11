@@ -197,12 +197,18 @@ atcoder_do_mkdir() {
 	local CONTENT TASK_SCREEN_NAMES TASK_SCREEN_NAME
 	CONTENT="$(atcoder_http_get "/contests/${CONTEST}/submit")" || exitm "failed to get task list"
 	TASK_SCREEN_NAMES="$(atcoder_extract_task_screen_names <<< "$CONTENT")"
+	[ "X$TASK_SCREEN_NAMES" != X ] || exitm "SOMETHING WRONG: task list empty."
 	local TASKDIR
 	while read TASK_SCREEN_NAME
 	do
 		TASKDIR="$(sed -e 's/.*_//' <<< "$TASK_SCREEN_NAME")"
-		m "mkdir $TASKDIR for $TASK_SCREEN_NAME"
-		[ -d "$TASKDIR" ] || mkdir "$TASKDIR"
+		if [ -d "$TASKDIR" ]
+		then
+			m "mkdir $TASKDIR for $TASK_SCREEN_NAME is already done"
+		else
+			m "mkdir $TASKDIR for $TASK_SCREEN_NAME now"
+			mkdir "$TASKDIR" || exitm "failed to mkdir $TASKDIR"
+		fi
 	done <<< "$TASK_SCREEN_NAMES"
 }
 
@@ -215,6 +221,7 @@ atcoder_task() {
 	local CONTENT TASK_SCREEN_NAMES TASK_SCREEN_NAME
 	CONTENT="$(atcoder_http_get "/contests/${CONTEST}/submit")" || exitm "failed to get task list"
 	TASK_SCREEN_NAMES="$(atcoder_extract_task_screen_names <<< "$CONTENT")"
+	[ "X$TASK_SCREEN_NAMES" != X ] || exitm "SOMETHING WRONG: task list empty."
 	TASK_SCREEN_NAME="$(grep "_$PROBLEM"'$' <<< "$TASK_SCREEN_NAMES")"
 	[ "X$TASK_SCREEN_NAME" != X ] || exitm "failed to determinate TASK_SCREEN_NAME"
 	m TASK_SCREEN_NAME: $TASK_SCREEN_NAME

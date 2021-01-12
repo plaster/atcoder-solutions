@@ -15,22 +15,8 @@
   )
 
 (define (solve cs)
-  (let loop [[ n #f ]
-             [ cs cs ]
-             [ c #f ]
-             ]
-    (cond
-      [ (eqv? n 3) c ]
-      [else
-        (match cs
-          [ (c1 . cs)
-           (loop
-             (if (eqv? c1 c)
-               (+ n 1) 1)
-             cs c1) ]
-          [ () #f ]
-          )])) 
-  )
+  (any (^ (a b c) (and (char=? a b c) a))
+       cs (cdr cs) (cddr cs)))
 
 (define (emit c)
   (print (or c 'draw)))

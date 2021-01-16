@@ -443,6 +443,13 @@ show_help() {
 	' < "$MAINCOMMAND"
 }
 
+show_rights() {
+	cat <<-'EOF'
+
+	連絡先: https://github.com/plaster/
+	EOF
+}
+
 # dispatch
 atcoder_load_config
 MAINCOMMAND="$0"
@@ -475,13 +482,16 @@ mkdir)
 	atcoder_do_mkdir FULLNAME
 	;;
 init|i|gen)
-	### 引数: template_id
-	### タスクディレクトリ下に回答テンプレートを生成します。
+	### 引数: [template_id]
+	### タスクディレクトリ下に回答テンプレートを生成します。タスクディレクトリ下で実行してください。
+	### 例) ~/work/abc188/a$ atcoder init
+	### 例) ~/work/abc188/b$ atcoder init bash
 	atcoder_do_init "$@"
 	;;
 switch)
-	### 引数: template_id
-	### タスクディレクトリ下の回答テンプレートを別言語に切り替えます。
+	### 引数: <template_id>
+	### タスクディレクトリ下の回答テンプレートを別言語に切り替えます。タスクディレクトリ下で実行してください。
+	### 例) ~/work/abc188/a$ atcoder switch bash
 	atcoder_do_switch "$@"
 	;;
 fetch)
@@ -511,6 +521,7 @@ force-submit)
 help)
 	### このヘルプを表示します。
 	show_help
+	show_rights
 	;;
 '')
 	show_help

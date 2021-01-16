@@ -415,40 +415,85 @@ atcoder_do_submit() {
 	atcoder_task submit
 }
 
+declare MAINCOMMAND
+
+show_help() {
+	echo "$0 <サブコマンド> [引数...] - AtCoder 提出クライアント"
+	cat <<-'EOF'
+	以下のサブコマンドが利用可能です。
+	EOF
+	sed -n \
+	-e "
+	s@\$COOKIE_JAR@$COOKIE_JAR@g
+	" \
+	-e '
+	/^# dispatch/,$ {
+		/^[-a-z|]\+)/ {
+			s/).*//
+			s/|\(.*\)/ (または \1)/
+			s/|/, /g
+			s/^/\n/
+			p
+		}
+		/^[ \t]*###/ {
+			s/^[ \t]*###/\t/
+			p
+		}
+	}
+	' < "$MAINCOMMAND"
+}
 
 # dispatch
 atcoder_load_config
+MAINCOMMAND="$0"
 SUBCOMMAND="$1"
 shift
 case "$SUBCOMMAND" in
 check-logged-in|whoami)
+	### AtCoderへのログイン状態を表示します。
 	atcoder_check_logged_in
 	;;
 login)
+	### AtCoderへログインします。IDとパスワードの入力を要求します。
+	### ログイン状態は $COOKIE_JAR ファイルにセッションとして保持されます。
 	atcoder_do_login
 	;;
 logout)
+	### AtCoderをセッションログアウトします。
 	atcoder_do_logout
 	;;
 md)
+	### コンテストの全タスクのディレクトリを掘ります。コンテスト名(URLに表示されているもの)のディレクトリ下で実行してください。
+	### 作成されるディレクトリは a b c ... のようになります。
+	### 例) ~/work/abc188$ atcoder md
 	atcoder_do_mkdir SHORTNAME
 	;;
 mkdir)
+	### コンテストの全タスクのディレクトリを掘ります。コンテスト名(URLに表示されているもの)のディレクトリ下で実行してください。
+	### 作成されるディレクトリは abc188_a abc188_b ... のように、各タスクのURLのものになります。
+	### タスク名の末尾がアルファベット一文字で定まらないようなコンテスト（abs等）で使います。
 	atcoder_do_mkdir FULLNAME
 	;;
-i|init|gen)
+init|i|gen)
+	### 引数: template_id
+	### タスクディレクトリ下に回答テンプレートを生成します。
 	atcoder_do_init "$@"
 	;;
-switch|sw)
+switch)
+	### 引数: template_id
+	### タスクディレクトリ下の回答テンプレートを別言語に切り替えます。
 	atcoder_do_switch "$@"
 	;;
 fetch)
+	### タスクディレクトリ下にサンプル入出力をダウンロードして保存します。
 	atcoder_do_fetch
 	;;
 test|t)
+	### サンプル入力で回答を実行し、サンプル出力との結果の一致をチェックします。
 	atcoder_do_test
 	;;
 submit|sub|s)
+	### 回答を提出します。提出前にサンプル入出力と比較し、一致しない場合は中止します。
 	m "testing first."
 	if atcoder_do_test
 	then
@@ -460,10 +505,15 @@ submit|sub|s)
 	fi
 	;;
 force-submit)
+	### 回答を提出します。サンプル入出力との比較は行いません。
 	atcoder_do_submit
 	;;
+help)
+	### このヘルプを表示します。
+	show_help
+	;;
 '')
-	m "$0"
+	show_help
 	exitm "SUBCOMMAND MISSING"
 	;;
 *)

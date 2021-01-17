@@ -15,6 +15,8 @@ declare -f atcoder_run
 declare SOURCETMPL
 declare SOURCEFILE
 declare LANGUAGEID
+declare -f atcoder_assert_tmplroot
+declare TMPLROOT
 
 atcoder_assert_config() {
 	type -t atcoder_build >/dev/null || exitm "config missing: atcoder_build"
@@ -343,40 +345,41 @@ checked_cp_i() {
 	cp "$CPFROM" "$CPTO" || exitm "cp faield."
 }
 
-declare WORKROOT
-atcoder_assert_git() {
-	local RC
+atcoder_assert_tmplroot() {
+	local RC WORKROOT
 	WORKROOT="$(git rev-parse --show-toplevel)"
 	RC="$?"
 	case "$RC" in
 	0) ;;
 	*) exitm "Failed to detect WORKROOT($RC). Please check if git repo is properly checked out." ;;
 	esac
+	TMPLROOT="${WORKROOT}/templates"
 }
 
 atcoder_do_init() {
 	local ATCODER_LANG="$1"
 	[ "X${ATCODER_LANG}" = X ] || atcoder_do_switch "$ATCODER_LANG"
 
-	atcoder_assert_git
 	atcoder_assert_pwd
 	atcoder_assert_config
+	atcoder_assert_tmplroot
 
-	checked_cp_i "${WORKROOT}/templates/source/${SOURCETMPL}" "./${SOURCEFILE}"
+	checked_cp_i "${TMPLROOT}/source/${SOURCETMPL}" "./${SOURCEFILE}"
 }
 
 atcoder_do_switch() {
 	local ATCODER_LANG="$1"
 	[ "X${ATCODER_LANG}" != X ] || exitm "language is not specified."
-	atcoder_assert_git
 	atcoder_assert_pwd
+	atcoder_load_config
+	atcoder_assert_tmplroot
 
 	case "$ATCODER_LANG" in
 	default)
 		[ ! -e ./.atcoder ] || rm ./.atcoder || exitm "failed to rm ./.atcoder"
 		;;
 	*)
-		checked_cp "${WORKROOT}/templates/config/${ATCODER_LANG}.atcoder" ./.atcoder
+		checked_cp "${TMPLROOT}/config/${ATCODER_LANG}.atcoder" ./.atcoder
 		chmod u+x ./.atcoder || exitm "failed to chmod ./.atcoder"
 		;;
 	esac

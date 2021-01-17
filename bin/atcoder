@@ -422,25 +422,27 @@ show_help() {
 	cat <<-'EOF'
 	以下のサブコマンドが利用可能です。
 	EOF
-	sed -n \
-	-e "
-	s@\$COOKIE_JAR@$COOKIE_JAR@g
-	" \
-	-e '
-	/^# dispatch/,$ {
-		/^[-a-z|]\+)/ {
-			s/).*//
-			s/|\(.*\)/ (または \1)/
-			s/|/, /g
-			s/^/\n/
-			p
-		}
-		/^[ \t]*###/ {
-			s/^[ \t]*###/\t/
-			p
-		}
-	}
-	' < "$MAINCOMMAND"
+	local MAINCOMMANDNAME="${MAINCOMMAND##*/}"
+	local SEDARGS=(
+		-n
+		-e " s@\$COOKIE_JAR@$COOKIE_JAR@g "
+		-e " s@\$MAINCOMMANDNAME@$MAINCOMMANDNAME@g "
+		-e '
+		/^# dispatch/,$ {
+			/^[-a-z|]\+)/ {
+				s/).*//
+				s/|\(.*\)/ (または \1)/
+				s/|/, /g
+				s/^/\n/
+				p
+			}
+			/^[ \t]*###/ {
+				s/^[ \t]*###/\t/
+				p
+			}
+		}'
+	)
+	sed "${SEDARGS[@]}" < "$MAINCOMMAND"
 }
 
 show_rights() {
@@ -472,7 +474,7 @@ logout)
 md)
 	### コンテストの全タスクのディレクトリを掘ります。コンテスト名(URLに表示されているもの)のディレクトリ下で実行してください。
 	### 作成されるディレクトリは a b c ... のようになります。
-	### 例) ~/work/abc188$ atcoder md
+	### 例) ~/work/abc188$ $MAINCOMMANDNAME md
 	atcoder_do_mkdir SHORTNAME
 	;;
 mkdir)
@@ -484,14 +486,14 @@ mkdir)
 init|i|gen)
 	### 引数: [template_id]
 	### タスクディレクトリ下に回答テンプレートを生成します。タスクディレクトリ下で実行してください。
-	### 例) ~/work/abc188/a$ atcoder init
-	### 例) ~/work/abc188/b$ atcoder init bash
+	### 例) ~/work/abc188/a$ $MAINCOMMANDNAME init
+	### 例) ~/work/abc188/b$ $MAINCOMMANDNAME init bash
 	atcoder_do_init "$@"
 	;;
 switch)
 	### 引数: <template_id>
 	### タスクディレクトリ下の回答テンプレートを別言語に切り替えます。タスクディレクトリ下で実行してください。
-	### 例) ~/work/abc188/a$ atcoder switch bash
+	### 例) ~/work/abc188/a$ $MAINCOMMANDNAME switch bash
 	atcoder_do_switch "$@"
 	;;
 fetch)

@@ -1,3 +1,6 @@
 [submodule "cli-atcoder"]
 	path = cli-atcoder
 	url = git@github.com:plaster/cli-atcoder.git
+[submodule "cli-client-atcoder"]
+	path = cli-client-atcoder
+	url = git@github.com:plaster/cli-client-atcoder.git

@@ -1,0 +1,18 @@
+# vi:se ft=sh :
+SOURCETMPL="Main.scm"
+SOURCEFILE="Main.scm"
+LANGTITLE="Scheme(Gauche 0.9.9) precomp"
+LANGUAGEID=4053 #scheme
+atcoder_build() {
+	"/opt/Gauche-0.9.9/bin/gosh" precomp -e "${SOURCEFILE}" &&
+	sed -e '3 i \
+#include <gauche/extend.h>
+	' -i Main.c &&
+	gcc -I /opt/Gauche-0.9.9/lib/gauche-0.97/0.9.9/include \
+		-L /opt/Gauche-0.9.9/lib/ \
+		-l gauche-static-0.97 \
+		Main.c
+}
+atcoder_run() {
+	exec ./a.out
+}

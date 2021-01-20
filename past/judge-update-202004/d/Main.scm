@@ -63,9 +63,10 @@
 
 (define ((%solve$ As) S)
   (let1 i (first-index-binary (vector-length As)
-                              (.$ (pa$ = 1)
-                                  (pa$ gcd S)
-                                  (pa$ vector-ref As))
+                              (^ (i)
+                                 ($ = 1
+                                    $ gcd S
+                                    $ vector-ref As i))
                               )
     (if i (+ i 1)
       ($ gcd S

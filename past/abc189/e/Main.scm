@@ -59,15 +59,14 @@
                  (* 1 m23))
               )])]))
 
+(use gauche.collection)
+
 (define (calc-motion Qs)
-  (let loop [[ res `(,E) ]
-             [ Qs Qs ]
-             [ mm E ]]
-    (match Qs
-      [ () (reverse res) ]
-      [ (Q . Qs)
-       (let1 mm (mat* (query->matrix Q) mm)
-         (loop (cons mm res) Qs mm))])))
+  (map-accum
+    (^ (Q mm) (let1 mm (mat* (query->matrix Q) mm)
+                (values mm mm)))
+    E
+    Qs))
 
 (define E'#( 1 0 0 
              0 1 0
@@ -96,14 +95,15 @@
     ))
 
 (define (solve Ps Qs ABs)
-  (let [[Ms (list->vector (calc-motion Qs))]
+  (let [[Ms (list->vector (cons E (calc-motion Qs)))]
         [Ps (list->vector Ps) ]]
-    (map (^ (AB)
+    (for-each (^ (AB)
             (match AB
               [ (A B)
-               (pj (vector-ref Ms A) (vector-ref Ps (- B 1)))
+               (match (pj (vector-ref Ms A) (vector-ref Ps (- B 1)))
+                 [ (X Y) (print X " " Y) ])
                ]))
          ABs)
     ))
 
-(define (emit vs) (for-each (^ (v) (print (car v) " " (cadr v))) vs))
+(define (emit _) #f)

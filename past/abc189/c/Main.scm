@@ -13,7 +13,7 @@
 
 (define (parse)
   (let1 N (read)
-    (list->vector (replist N read))))
+    (values N (list->vector (replist N read)))))
 
 #|
 (use srfi-42)
@@ -27,11 +27,11 @@
     ))
 |#
 
-(define (solve As)
+(define (solve N As)
   (let loop-L [[ L 0 ] [m 0]]
-    (if ($ >= L $ vector-length As) m
+    (if (>= L N) m
       (let loop-R [[ R L ] [m m] [x (vector-ref As L)]]
-        (if ($ >= R $ vector-length As) (loop-L (+ L 1) m)
+        (if (>= R N) (loop-L (+ L 1) m)
           (let1 x (min x (vector-ref As R))
             (loop-R (+ R 1) ($ max m $ * x $ + 1 $ - R L) x)))))))
 

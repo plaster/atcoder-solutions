@@ -25,63 +25,55 @@
 ; m21 m22
 ;
 
-(define (mat* mm nn)
-  (match mm
-    [#( m11 m12 m13
-        m21 m22 m23
-        )
-     (match nn
-       [#( n11 n12 n13
-           n21 n22 n23
-           )
+(use gauche.uvector)
 
-      (vector (+ (* m11 n11) (* m12 n21))
-              (+ (* m11 n12) (* m12 n22))
-              (+ (* m11 n13) (* m12 n23) m13)
-              (+ (* m21 n11) (* m22 n21))
-              (+ (* m21 n12) (* m22 n22))
-              (+ (* m21 n13) (* m22 n23) m23)
-              )
-        ])]))
+(define (mat* mm nn)
+  (s64vector
+    (+ (* (s64vector-ref mm 0) (s64vector-ref nn 0)) (* (s64vector-ref mm 1) (s64vector-ref nn 3)))
+    (+ (* (s64vector-ref mm 0) (s64vector-ref nn 1)) (* (s64vector-ref mm 1) (s64vector-ref nn 4)))
+    (+ (* (s64vector-ref mm 0) (s64vector-ref nn 2)) (* (s64vector-ref mm 1) (s64vector-ref nn 5)) (s64vector-ref mm 2))
+    (+ (* (s64vector-ref mm 3) (s64vector-ref nn 0)) (* (s64vector-ref mm 4) (s64vector-ref nn 3)))
+    (+ (* (s64vector-ref mm 3) (s64vector-ref nn 1)) (* (s64vector-ref mm 4) (s64vector-ref nn 4)))
+    (+ (* (s64vector-ref mm 3) (s64vector-ref nn 2)) (* (s64vector-ref mm 4) (s64vector-ref nn 5)) (s64vector-ref mm 5))
+    ))
 
 (define (pj mm v)
-  (match mm
-    [#( m11 m12 m13
-        m21 m22 m23
-        )
-     (match v
-       [ ( x y )
-        (list (+ (* x m11)
-                 (* y m12)
-                 (* 1 m13))
-              (+ (* x m21)
-                 (* y m22)
-                 (* 1 m23))
-              )])]))
+  (match v
+    [ ( x y )
+     (list (+ (* x (s64vector-ref mm 0))
+              (* y (s64vector-ref mm 1))
+              (* 1 (s64vector-ref mm 2)))
+           (+ (* x (s64vector-ref mm 3))
+              (* y (s64vector-ref mm 4))
+              (* 1 (s64vector-ref mm 5)))
+           )]))
 
 (use gauche.collection)
 
 (define (calc-motion Qs)
   (map-accum
-    (^ (Q mm) (let1 mm (mat* (query->matrix Q) mm)
+    (^ (Q mm) (let1 mm (mat* (query->matrix! Q) mm)
                 (values mm mm)))
     E
     Qs))
 
-(define E'#( 1 0 0 
-             0 1 0
-             ))
+(define E'#s64( 1 0 0 0 1 0 ))
 
-(define (query->matrix Q)
+(define *mat3* (s64vector -1 0 0 0 1 0) )
+(define *mat4* (s64vector 1 0 0 0 -1 0) )
+
+(define (query->matrix! Q)
   (match Q
     [ (1)
-    '#( 0 1 0 -1 0 0) ]
+    '#s64( 0 1 0 -1 0 0) ]
     [ (2)
-    '#( 0 -1 0 1 0 0) ]
+    '#s64( 0 -1 0 1 0 0) ]
     [ (3 p)
-    `#(-1 0 ,(* 2 p) 0 1 0) ]
+     (s64vector-set! *mat3* 2 (* 2 p))
+     *mat3* ]
     [ (4 p)
-    `#(1 0 0 0 -1 ,(* 2 p)) ]
+     (s64vector-set! *mat4* 5 (* 2 p))
+     *mat4* ]
     ))
 
 (define (solve Ps Qs ABs)

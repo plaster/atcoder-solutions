@@ -20,9 +20,9 @@
          [ Ps (;$ time $
                  list-ec
                   (: _ N)
-                  (list-ec
-                    (: _ 2)
-                    (read)))
+                  (:let x (read))
+                  (:let y (read))
+                  (list x y) )
                   ]
          [ M (read) ]
          [ Qs (;$ time $
@@ -38,9 +38,9 @@
          [ ABs (;$ time $
                   list-ec
                   (: _ Q)
-                  (list-ec
-                    (: _ 2)
-                    (read)))
+                  (:let A (read))
+                  (:let B (read))
+                  (list A B) )
                   ]
          ]
     (values Ps Qs ABs)
@@ -77,13 +77,17 @@
         )
      (match v
        [ ( x y )
-        (list (+ (* x m11)
-                 (* y m12)
-                 (* 1 m13))
-              (+ (* x m21)
-                 (* y m22)
-                 (* 1 m23))
-              )])]))
+        (print ;list
+          (+ (* x m11)
+             (* y m12)
+             (* 1 m13))
+          " "
+          (+ (* x m21)
+             (* y m22)
+             (* 1 m23))
+          )
+          ])
+     ]))
 
 (use gauche.collection)
 
@@ -115,11 +119,13 @@
                $ cons E
                $ calc-motion Qs)]
         [Ps (list->vector Ps) ]]
-    (for-each (^ (AB)
+    (;$ time $
+       for-each (^ (AB)
             (match AB
               [ (A B)
-               (match (pj (vector-ref Ms A) (vector-ref Ps (- B 1)))
-                 [ (X Y) (print X " " Y) ])
+               ; (match
+                 (pj (vector-ref Ms A) (vector-ref Ps (- B 1)))
+                 ; [ (X Y) (print X " " Y) ])
                ]))
          ABs)
     ))

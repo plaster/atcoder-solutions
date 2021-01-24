@@ -75,27 +75,19 @@
 (define (query->matrix Q)
   (match Q
     [ (1)
-    '#( 0 1 0
-        -1 0 0
-        ) ]
+    '#( 0 1 0 -1 0 0) ]
     [ (2)
-    '#( 0 -1 0
-        1 0 0
-        ) ]
+    '#( 0 -1 0 1 0 0) ]
     [ (3 p)
-    `#(-1 0 ,(* 2 p)
-       0 1 0
-       )
-     ]
+    `#(-1 0 ,(* 2 p) 0 1 0) ]
     [ (4 p)
-    `#(1 0 0
-       0 -1 ,(* 2 p)
-       )
-     ]
+    `#(1 0 0 0 -1 ,(* 2 p)) ]
     ))
 
 (define (solve Ps Qs ABs)
-  (let [[Ms (list->vector (cons E (calc-motion Qs)))]
+  (let [[Ms ($ list->vector
+               $ cons E
+               $ calc-motion Qs)]
         [Ps (list->vector Ps) ]]
     (for-each (^ (AB)
             (match AB

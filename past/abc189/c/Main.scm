@@ -32,8 +32,14 @@
     (if (>= L N) m
       (let loop-R [[ R L ] [m m] [x (vector-ref As L)]]
         (if (>= R N) (loop-L (+ L 1) m)
-          (let1 x (min x (vector-ref As R))
-            (loop-R (+ R 1) ($ max m $ * x $ + 1 $ - R L) x)))))))
+          (let1 x ;(min x (vector-ref As R))
+            (let1 x2 (vector-ref As R)
+              (if (< x2 x) x2 x))
+            (loop-R (+ R 1)
+                    ; ($ max m $ * x $ - R L -1)
+                    (let1 m2 ($ * x $ - R L -1)
+                      (if (> m2 m) m2 m))
+                    x)))))))
 
 
 (define emit print)

@@ -13,4 +13,4 @@
   (error "not implemented")
   )
 
-(define (voice output) (print result))
+(define (voice output) (print output))

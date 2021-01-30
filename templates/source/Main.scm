@@ -1,17 +1,16 @@
 ;;; common libs
-(use srfi-1) (use util.match) (use gauche.generator)
+(use srfi-1) (use util.match)
 ;;; entry point
-(define (main _)
-  (call-with-values (cut call-with-values parse solve)
-    emit) 0)
+(define %main (cut call-with-values (cut call-with-values parse solve) voice))
+(define (main . _) (%main) 0)
 ;;; solution body
 
 (define (parse)
   (error "not implemented")
   )
 
-(define (solve data)
+(define (solve input)
   (error "not implemented")
   )
 
-(define emit print)
+(define (voice output) (print result))

@@ -32,12 +32,11 @@
       [else
         (min (+ N (if (odd? (+ r1 r2 c1 c2)) 3 2))
              (min-ec
-               (: dr 1 4)
-               (: dc 1 4)
-               (: sr -1 2 2)
-               (: sc -1 2 2)
-               (:let r1 ($ + r1 $ * sr dr))
-               (:let c1 ($ + c1 $ * sc dc))
+               (: dr -3 4)
+               (: dc -3 4)
+               (if (not (and (zero? dr) (zero? dc))))
+               (:let r1 ($ + r1 dr))
+               (:let c1 ($ + c1 dc))
                (loop r1 c1 (+ N 1))
                ))
           ]

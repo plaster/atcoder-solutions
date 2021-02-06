@@ -44,18 +44,18 @@
   (dict-get edges s empty-sv ))
 
 (define (dijkstra edges s)
-  (let* [[ Q (rlet1 Q (make-binary-heap :key cdr)
-                    (binary-heap-push! Q (cons s 0))) ]
+  (let* [[ Q (rlet1 Q (make-binary-heap :key cdr :comparator integer-comparator)
+                    ($ binary-heap-push! Q $ cons s 0)) ]
          [ V (make-sparse-vector) ]]
     (until (binary-heap-empty? Q)
       (match (binary-heap-pop-min! Q)
         [ ( s . Cs )
-         (dict-update! V s ($ min Cs $) Cs)
+         (dict-put! V s Cs)
          (dict-for-each
            (edges-from edges s)
            (^ (t Ct)
               (or (dict-exists? V t)
-                  (binary-heap-push! Q ($ cons t $ + Cs Ct)))))
+                  ($ binary-heap-push! Q $ cons t $ + Cs Ct))))
          ]))
     V))
 

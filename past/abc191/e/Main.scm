@@ -59,8 +59,10 @@
          ]))
     V))
 
+(define *unreachable-distance* +inf.0)
+
 (define (distance-to V t)
-  (dict-get V t +inf.0))
+  (dict-get V t *unreachable-distance*))
 
 (define (solve N)
   (list-ec
@@ -73,7 +75,7 @@
         [(= s t)
          (dict-get
            (dict-get *E* s empty-sv)
-           s +inf.0)
+           s *unreachable-distance*)
          ]
         [else
           (+ (distance-to fw-costs t)
@@ -85,7 +87,7 @@
   (for-each (^ (distance)
                (print
                  (cond
-                   [ (> distance 99999999) -1 ]
+                   [ (>= distance *unreachable-distance*) -1 ]
                    [ else (round->exact distance) ]
                    )))
             output))

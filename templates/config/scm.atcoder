@@ -10,6 +10,6 @@ atcoder_run() {
 	exec /opt/Gauche-0.9.9/bin/gosh "${SOURCEFILE}"
 }
 atcoder_repl() {
-	m /opt/Gauche-0.9.9/bin/gosh -l "./${SOURCEFILE}"
+	info_of /opt/Gauche-0.9.9/bin/gosh -l "./${SOURCEFILE}"
 	exec /opt/Gauche-0.9.9/bin/gosh -l "./${SOURCEFILE}"
 }

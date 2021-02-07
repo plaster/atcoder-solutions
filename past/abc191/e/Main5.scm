@@ -77,7 +77,7 @@
                        (+ d-st d-ts)) ])
 
              (^ (d1 d0)
-                (or (and d0 d1 (min d1 d0)) d0 d1))
+                (or (and d1 d0 (min d1 d0)) d1 d0))
             )))
 
 (define (voice output)

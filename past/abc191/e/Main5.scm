@@ -9,8 +9,8 @@
 
 (define *V-MAX* 2000)
 
+(define *EL* (make-vector *V-MAX* '() )) ;; edge list
 (define *EW* (make-vector (* *V-MAX* *V-MAX*) #f)) ;; edge weight
-(define *EL* (make-hash-table integer-comparator)) ;; edge list
 (define *VC* (make-vector (* *V-MAX* *V-MAX*) #f)) ;; vertex cost
 
 (define (parse)
@@ -26,7 +26,7 @@
         (let1 C0 ($ vector-ref *EW* $ + A $ * B *V-MAX*)
           (vector-set! *EW* ($ + A $ * B *V-MAX*)
                        (or (and C0 (min C0 C)) C)))
-        (hash-table-push! *EL* A B)
+        (push! (vector-ref *EL* A) B)
         ))
     N))
 
@@ -45,7 +45,7 @@
               (or ($ vector-ref *VC* $ + t $ * *V-MAX* s0)
                   ($ binary-heap-push! Q $ cons t $ + Cs
                      $ vector-ref *EW* ($ + s $ * t *V-MAX*))))
-           (hash-table-get *EL* s '()))
+           (vector-ref *EL* s))
          ]))))
 
 (define (solve N)

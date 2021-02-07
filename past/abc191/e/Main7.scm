@@ -104,8 +104,10 @@
       )))
 ;;
 
+(define *Q* ($ make-bin-heap $ * 1000 *V-MAX*))
+
 (define (dijkstra! s0)
-  (let1 Q (rlet1 Q ($ make-bin-heap $ * 100 *V-MAX*)
+  (let1 Q (rlet1 Q #| ($ make-bin-heap $ * 100 *V-MAX*) |# *Q* ;; no need to init / become empty per loop
             ($ bin-heap-push! Q $ cons s0 0))
     (until (bin-heap-empty? Q)
       (match (bin-heap-pop! Q)

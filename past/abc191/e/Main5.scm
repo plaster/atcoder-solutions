@@ -13,6 +13,13 @@
 (define *EW* (make-vector (* *V-MAX* *V-MAX*) #f)) ;; edge weight
 (define *VC* (make-vector (* *V-MAX* *V-MAX*) #f)) ;; vertex cost
 
+(define (uniq-list ls)
+  (let1 ht (make-hash-table)
+    (for-each (cut hash-table-put! ht <> #t) ls)
+    (hash-table-keys ht)))
+
+(define (index s t) ($ + s $ * t *V-MAX*))
+
 (define (parse)
   (let* [[N (read)]
          [M (read)]
@@ -23,11 +30,14 @@
       (:let B ($ + -1 $ read))
       (:let C (read))
       (begin
-        (let1 C0 ($ vector-ref *EW* $ + A $ * B *V-MAX*)
-          (vector-set! *EW* ($ + A $ * B *V-MAX*)
-                       (or (and C0 (min C0 C)) C)))
+        (if-let1 C0 ($ vector-ref *EW* $ index A B)
+          (vector-set! *EW* (index A B) (min C0 C))
+          (vector-set! *EW* (index A B) C))
         (push! (vector-ref *EL* A) B)
         ))
+    (do-ec
+      [: A N]
+      (update! (vector-ref *EL* A) uniq-list))
     N))
 
 (use data.heap)
@@ -39,12 +49,15 @@
     (until (binary-heap-empty? Q)
       (match (binary-heap-pop-min! Q)
         [ ( s . Cs )
-         (vector-set! *VC* ($ + s $ * *V-MAX* s0) Cs)
+         (if-let1 Cs0 ($ vector-ref *VC* $ index s s0)
+           (vector-set! *VC* (index s s0) (min Cs Cs0))
+           (vector-set! *VC* (index s s0) Cs)
+           )
          (for-each
            (^ (t)
-              (or ($ vector-ref *VC* $ + t $ * *V-MAX* s0)
+              (or ($ vector-ref *VC* $ index t s0)
                   ($ binary-heap-push! Q $ cons t $ + Cs
-                     $ vector-ref *EW* ($ + s $ * t *V-MAX*))))
+                     $ vector-ref *EW* $ index s t)))
            (vector-ref *EL* s))
          ]))))
 
@@ -52,15 +65,15 @@
   (do-ec (: s N) (dijkstra! s))
   (list-ec
     (: s N)
-    (:let d-ss ($ vector-ref *EW* $ + s $ * s *V-MAX*))
+    (:let d-ss ($ vector-ref *EW* $ index s s))
     (fold-ec #f
 
              (: t N)
 
              (cond [ (= s t) d-ss ]
                    [else 
-                     (and-let* [[ d-st ($ vector-ref *VC* $ + s $ * t *V-MAX*) ]
-                                [ d-ts ($ vector-ref *VC* $ + t $ * s *V-MAX*) ]]
+                     (and-let* [[ d-st ($ vector-ref *VC* $ index s t) ]
+                                [ d-ts ($ vector-ref *VC* $ index t s) ]]
                        (+ d-st d-ts)) ])
 
              (^ (d1 d0)

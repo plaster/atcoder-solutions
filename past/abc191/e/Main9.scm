@@ -126,22 +126,20 @@
     (until (bin-heap-empty? Q)
       (match (bin-heap-pop! Q)
         [ ( s . Cs )
-         (if-let1 Cs0 ($ vector-ref *VC* $ index s s0)
-           (vector-set! *VC* (index s s0) (min Cs Cs0))
+         (unless ($ vector-ref *VC* $ index s s0)
            (vector-set! *VC* (index s s0) Cs)
-           )
-         (cond
-           [(= s s0)
-            (bin-heap-clear! Q) ;; break
-            ]
-           [else
-             (for-each
-               (^ (t)
-                  (or ($ vector-ref *VC* $ index t s0)
-                      ($ bin-heap-push! Q $ cons t $ + Cs
-                         $ vector-ref *EW* $ index s t)))
-               (vector-ref *EL* s))
-             ] ) ] ))))
+           (cond
+             [(= s s0)
+              (bin-heap-clear! Q) ;; break
+              ]
+             [else
+               (for-each
+                 (^ (t)
+                    (or ($ vector-ref *VC* $ index t s0)
+                        ($ bin-heap-push! Q $ cons t $ + Cs
+                           $ vector-ref *EW* $ index s t)))
+                 (vector-ref *EL* s))
+               ] )) ] ))))
 
 (define (warshall-floyd! N)
   (dotimes [ s N ]

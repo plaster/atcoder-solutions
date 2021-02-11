@@ -1,7 +1,7 @@
 ;;; common libs
 (use srfi-1) (use util.match)
 ;;; entry point
-(define %main (cut call-with-values (cut call-with-values parse solve) voice))
+(define %main (cut call-with-values parse solve))
 (define (main . _) (%main) 0)
 ;;; solution body
 
@@ -160,19 +160,20 @@
     (until (bin-heap-empty? Q)
       (match (bin-heap-pop! Q)
         [ ( s . Cs )
-         (vector-set! *VC* (index s0 s) Cs)
-         (cond
-           [(= s s0)
-            (bin-heap-clear! Q) ;; virtually break
-            ]
-           [else
-             (for-each
-               (^ (t)
-                  (or ($ vector-ref *VC* $ index s0 t)
-                      ($ bin-heap-push! Q $ cons t $ + Cs
-                         $ vector-ref *EW* $ index s t)))
-               (vector-ref *oL* s))
-             ] ) ] ))
+         (unless (vector-ref *VC* (index s0 s) Cs)
+           (vector-set! *VC* (index s0 s) Cs)
+           (cond
+             [(= s s0)
+              (bin-heap-clear! Q) ;; virtually break
+              ]
+             [else
+               (for-each
+                 (^ (t)
+                    (or ($ vector-ref *VC* $ index s0 t)
+                        ($ bin-heap-push! Q $ cons t $ + Cs
+                           $ vector-ref *EW* $ index s t)))
+                 (vector-ref *oL* s))
+               ] )) ] ))
     ($ vector-ref *VC* $ index s0 s0)
     ))
 
@@ -180,15 +181,15 @@
   (list-ec
     (: s N)
     (:let chain (vector-ref *CN* s))
-    (cond
-      [ (hash-table-contains? *CC* chain)
-       (hash-table-get *CC* chain) ]
-      [ else
-        (rlet1 c (dijkstra! s)
-          (hash-table-put! *CC* chain c))
-       ]
-      )))
+    (voice
+      (cond
+        [ (hash-table-contains? *CC* chain)
+         (hash-table-get *CC* chain) ]
+        [ else
+          (rlet1 c (dijkstra! s)
+            (hash-table-put! *CC* chain c))
+          ]
+        ))))
 
-(define (voice output)
-  (for-each (^ (distance) (print (or distance -1)))
-            output))
+(define (voice distance)
+  (print (or distance -1)))

@@ -52,10 +52,15 @@
        ])))
 
 (define (solve X M D0)
-  (let1 D1 (bisect-first-index
-             100000000000000000000
-             (^ (D1)
-                ($ < M $ digits->number X D1)))
-    ($ max 0 $ - D1 D0)))
+  (match X
+    [(x)
+     (if (> x M) 0 1)]
+    [ X
+      (let1 D1 (bisect-first-index
+                 100000000000000000000
+                 (^ (D1)
+                    ($ < M $ digits->number X D1)))
+        ($ max 0 $ - D1 D0)) ]
+    ))
 
 (define (voice output) (print output))

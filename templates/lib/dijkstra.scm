@@ -25,16 +25,15 @@
         [ ( s . Cs )
          (unless (%dijkstra-visited? s0 s)
            (%dijkstra-visit! s0 s Cs)
-           (cond
-             (for-each
-               (^ (t)
-                  (unless (and (%dijkstra-visited? s0 t)
-                               ($ not $ = s t))
-                    ($ bin-heap-push! Q
-                       $ cons t $ + Cs
-                       $ %dijkstra-edge->cost s t
-                       )
-                    ))
-               (%dijkstra-edges-from s))
-               )) ] ))
+           (for-each
+             (^ (t)
+                (unless (and (%dijkstra-visited? s0 t)
+                             ($ not $ = s t))
+                  ($ bin-heap-push! Q
+                     $ cons t $ + Cs
+                     $ %dijkstra-edge->cost s t
+                     )
+                  ))
+             (%dijkstra-edges-from s))
+           ) ] ))
     ))

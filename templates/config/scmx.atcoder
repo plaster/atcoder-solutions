@@ -1,11 +1,10 @@
 # vi:se ft=sh :
 SOURCETMPL="Main.scm"
 SOURCEFILE="Main.scm"
-LANGTITLE="Scheme(Gauche 0.9.9) precomp"
+LANGTITLE="Scheme(Gauche 0.9.9) standalone compile"
 LANGUAGEID=4053 #scheme
 atcoder_build() {
-	"/opt/Gauche-0.9.9/bin/gosh" precomp -e "${SOURCEFILE}" &&
-	"/opt/Gauche-0.9.9/bin/gauche-package" compile a.out Main.c
+	"/opt/Gauche-0.9.9/bin/gosh" build-standalone -o ./a.out "${SOURCEFILE}"
 }
 atcoder_run() {
 	exec ./a.out

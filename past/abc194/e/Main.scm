@@ -23,7 +23,7 @@
     (values N M V)
     ))
 
-(define (sparse? indices M)
+(define-inline (sparse? indices M)
   (any (^ (i1 i0)
           (< M (- i1 i0)))
        indices (cdr indices)))

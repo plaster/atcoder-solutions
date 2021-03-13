@@ -7,32 +7,31 @@
 
 (use srfi-42)
 
+(define-inline (%u gap new-left old-left)
+  (and old-left
+       ($ >= gap $ - new-left old-left)
+       new-left))
+
 (define (parse)
   (let* [[ N (read) ]
          [ M (read) ]
-         [ V (make-vector N '(-1)) ]
+         [ V (make-vector N -1) ]
          ]
     (do-ec
       (: i N)
       (:let A (read))
-      (push! (vector-ref V A) i)
-      )
+      ($ vector-set! V A $ %u M i $ vector-ref V A))
     (do-ec
       (: A N)
-      (push! (vector-ref V A) N))
+      ($ vector-set! V A $ %u M N $ vector-ref V A))
     (values N M V)
     ))
-
-(define-inline (sparse? indices M)
-  (any (^ (i1 i0)
-          (< M (- i1 i0)))
-       indices (cdr indices)))
 
 (define (solve N M V)
   (first-ec
     N
     (: A N)
-    (if (sparse? (vector-ref V A) M))
+    (if ($ not $ vector-ref V A))
     A
     ))
 
